@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 import random
+from tqdm import trange
 from sklearn.datasets import make_multilabel_classification
 
 
@@ -10,7 +11,7 @@ class MLSOL():
         self.perc_gen_instances = perc_gen_instances
         self.k = k
 
-    def get_Cij(sample_label, neighbours_label_values):
+    def get_Cij(self, sample_label, neighbours_label_values):
         num_common_labels = np.count_nonzero(neighbours_label_values == sample_label)
         k = len(neighbours_label_values)
         return (k - num_common_labels)/k
@@ -151,15 +152,15 @@ class MLSOL():
         w = self.get_weight_per_example(y, C, min_class_per_label)
         T = self.get_type_matrix(y, C, min_class_per_label, indices)
         counter = 0
-        init_size = gen_num
-        while gen_num > 0:
+
+        for i in trange(gen_num):
             # select a seed instance from your initial dataset based on the weights vector w
             seed_index = self.get_seed_instance(w)
             # randomly choose a reference instance from the k nearest neighbours of the seed instance
             reference_index = indices[seed_index][random.randint(1, self.k)]
             # i am adding the synthesized samples in reverse inside the dataset
             X_synthesized[gen_num-1], y_synthesized[gen_num-1] = self.generate_instance(X[seed_index, :], y[seed_index, :], T[seed_index, :], X[reference_index, :], y[reference_index, :], T[reference_index, :])
-            print('sample '+str(counter)+' / '+str(init_size)+' created')
+            # print('sample '+str(counter)+' / '+str(init_size)+' created')
             gen_num -= 1
             counter += 1
 
